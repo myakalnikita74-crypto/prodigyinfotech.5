@@ -1,0 +1,87 @@
+!doctype html>
+<style>
+:root {
+--bg: #0f172a; --card:#1e293b; --accent:#38bdf8; --text:#e2e8f0; --muted:#94a3b8;
+font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+body {background: var(--bg); color: var(--text); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh;}
+.app {background: var(--card); padding: 24px; border-radius: 12px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 6px 20px rgba(0,0,0,0.4);}
+h1 {margin-bottom: 20px; color: var(--accent);}
+input {padding: 10px; width: 70%; border-radius: 8px; border: none; margin-bottom: 12px;}
+button {padding: 10px 16px; border: none; border-radius: 8px; background: var(--accent); color: #0f172a; font-weight: 600; cursor: pointer;}
+button:hover {opacity: 0.9;}
+.weather {margin-top: 20px;}
+.temp {font-size: 2rem; font-weight: bold; margin: 10px 0;}
+.desc {color: var(--muted); margin-bottom: 12px;}
+</style>
+</head>
+<body>
+<div class="app">
+<h1>Weather App</h1>
+<input type="text" id="cityInput" placeholder="Enter city name" />
+<button id="searchBtn">Search</button>
+<div class="weather" id="weather"></div>
+</div>
+
+
+<script>
+const apiKey = "YOUR_API_KEY"; // Replace with your weather API key (e.g., OpenWeatherMap)
+const weatherEl = document.getElementById("weather");
+const cityInput = document.getElementById("cityInput");
+const searchBtn = document.getElementById("searchBtn");
+
+
+async function fetchWeather(city) {
+try {
+const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`);
+if (!res.ok) throw new Error("City not found");
+const data = await res.json();
+displayWeather(data);
+} catch (err) {
+weatherEl.innerHTML = `<p style='color:red'>${err.message}</p>`;
+}
+}
+
+
+function displayWeather(data) {
+const { name } = data;
+const { temp, humidity } = data.main;
+const { description, icon } = data.weather[0];
+const { speed } = data.wind;
+
+
+weatherEl.innerHTML = `
+<h2>${name}</h2>
+<img src="https://openweathermap.org/img/wn/${icon}@2x.png" alt="${description}">
+<div class="temp">${temp}°C</div>
+<div class="desc">${description}</div>
+<p>Humidity: ${humidity}%</p>
+<p>Wind Speed: ${speed} m/s</p>
+`;
+}
+
+
+searchBtn.addEventListener("click", () => {
+const city = cityInput.value.trim();
+if (city) fetchWeather(city);
+});
+
+
+// Get weather by user's current location
+window.onload = () => {
+if (navigator.geolocation) {
+navigator.geolocation.getCurrentPosition(async (pos) => {
+const { latitude, longitude } = pos.coords;
+try {
+const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=${apiKey}&units=metric`);
+const data = await res.json();
+displayWeather(data);
+} catch (err) {
+console.error(err);
+}
+});
+}
+}
+</script>
+</body>
+</html>
